@@ -532,6 +532,10 @@ class SipCommandInterface extends BaseCommands implements CommandsInterface {
     public boolean needsOldRilFeature(String feature) { return false; }
 
     @Override
+    public void getDataCallProfile(int appType, Message result) {
+    }
+
+    @Override
     public void getCellInfoList(Message result) {
     }
 
