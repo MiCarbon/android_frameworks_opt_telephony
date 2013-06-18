@@ -57,6 +57,7 @@ import com.android.internal.telephony.PhoneBase;
 import com.android.internal.telephony.DctConstants;
 import com.android.internal.telephony.EventLogTags;
 import com.android.internal.telephony.TelephonyIntents;
+import com.android.internal.telephony.TelephonyProperties;
 import com.android.internal.telephony.gsm.GSMPhone;
 import com.android.internal.telephony.cdma.CdmaSubscriptionSourceManager;
 import com.android.internal.telephony.cdma.CDMAPhone;
@@ -1298,21 +1299,6 @@ public class DcTracker extends DcTrackerBase {
         if (DBG) log("onDataStateChanged(ar): X");
     }
 
-<<<<<<< HEAD
-=======
-    private void notifyDefaultData(ApnContext apnContext) {
-        if (DBG) {
-            log("notifyDefaultData: type=" + apnContext.getDataProfileType()
-                + ", reason:" + apnContext.getReason());
-        }
-        apnContext.setState(DctConstants.State.CONNECTED);
-        // setState(DctConstants.State.CONNECTED);
-        mPhone.notifyDataConnection(apnContext.getReason(), apnContext.getDataProfileType());
-        startNetStatPoll();
-        startDataStallAlarm(DATA_STALL_NOT_SUSPECTED);
-    }
-
->>>>>>> b417777... Telephony: Introduce DataProfile base class
     // TODO: For multiple Active APNs not exactly sure how to do this.
     @Override
     protected void gotoIdleAndNotifyDataConnection(String reason) {
@@ -2085,6 +2071,26 @@ public class DcTracker extends DcTrackerBase {
                     mAllDps = createApnList(cursor);
                 }
                 cursor.close();
+            }
+        }
+
+        if (mAllDps.isEmpty()) {
+            if (mPhone.getPhoneType() == PhoneConstants.PHONE_TYPE_CDMA) {
+                // Create dummy data profile.
+                if (DBG) log("createAllApnList: Creating dummy apn for cdma operator:" + operator);
+                String[] defaultApnTypes = {
+                    PhoneConstants.APN_TYPE_DEFAULT,
+                    PhoneConstants.APN_TYPE_MMS,
+                    PhoneConstants.APN_TYPE_SUPL,
+                    PhoneConstants.APN_TYPE_HIPRI,
+                    PhoneConstants.APN_TYPE_FOTA,
+                    PhoneConstants.APN_TYPE_IMS,
+                    PhoneConstants.APN_TYPE_CBS };
+                ApnSetting apn = new ApnSetting(DctConstants.APN_DEFAULT_ID, operator, null, null,
+                        null, null, null, null, null, null, null,
+                        RILConstants.SETUP_DATA_AUTH_PAP_CHAP, defaultApnTypes,"IP", "IP", true,
+                        0);
+                mAllDps.add(apn);
             }
         }
 
