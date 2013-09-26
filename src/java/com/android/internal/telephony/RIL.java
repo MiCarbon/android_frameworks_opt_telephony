@@ -2411,7 +2411,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
             case RIL_REQUEST_SIGNAL_STRENGTH: ret =  responseSignalStrength(p); break;
             case RIL_REQUEST_VOICE_REGISTRATION_STATE: ret =  responseStrings(p); break;
             case RIL_REQUEST_DATA_REGISTRATION_STATE: ret =  responseStrings(p); break;
-            case RIL_REQUEST_OPERATOR: ret =  responseStrings(p); break;
+            case RIL_REQUEST_OPERATOR: ret =  operatorCheck(p); break;
             case RIL_REQUEST_RADIO_POWER: ret =  responseVoid(p); break;
             case RIL_REQUEST_DTMF: ret =  responseVoid(p); break;
             case RIL_REQUEST_SEND_SMS: ret =  responseSMS(p); break;
@@ -2567,8 +2567,30 @@ public class RIL extends BaseCommands implements CommandsInterface {
 
         rr.release();
     }
-
-    protected String
+// CDMA FIXES, this fixes  bogus values in nv/sim on d2/jf/t0 cdma family or bogus information from sim card
+    private Object
+    operatorCheck(Parcel p) {
+        String response[] = (String[])responseStrings(p);
+        for(int i=0; i<response.length; i++){
+            if (response[i]!= null){
+                 if (response[i].equals("23410")||response[i].equals("26207"))
+                     response[i]="O2";
+                 else if (response[i].trim().equals("ctnet") || response[i].trim().equals("46003")) {
+                      if (mSetPreferredNetworkType != 4) {
+                          mSetPreferredNetworkType = 4;
+                          setCurrentPreferredNetworkType();
+                                                        }
+                        response[i]="中国电信";
+                 } else if (response[i].trim().equals("China Mobile") || response[i].trim().equals("46000") || response[i].trim().equals("46002") || response[i].trim().equals("46007")) {
+                        response[i]="中国移动";
+                 } else if (response[i].trim().equals("China Unicom") || response[i].trim().equals("46001") || response[i].trim().equals("46006") || response[i].trim().equals("46020")) {
+                        response[i]="中国联通";
+                 }
+}
+}
+return response;
+}
+protected String
     retToString(int req, Object ret) {
         if (ret == null) return "";
         switch (req) {
