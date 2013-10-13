@@ -786,7 +786,7 @@ public class DcTracker extends DcTrackerBase {
                 Settings.System.MMS_AUTO_RETRIEVAL_ON_ROAMING, 0) == 1;
 
         // Allow automatic Mms connections if user has enabled it
-        if (mmsAutoRetrieval && apnContext.getApnType().equals(PhoneConstants.APN_TYPE_MMS)) {
+        if (mmsAutoRetrieval && apnContext.getDataProfileType().equals(PhoneConstants.APN_TYPE_MMS)) {
             // don't allow MMS connections while roaming if disabled
             TelephonyManager tm = (TelephonyManager)
                     mPhone.getContext().getSystemService(Context.TELEPHONY_SERVICE);
