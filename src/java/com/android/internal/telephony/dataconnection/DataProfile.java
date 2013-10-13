@@ -55,7 +55,7 @@ public abstract class DataProfile {
      */
     public final int bearer;
 
-    public final String[] types;
+    public String[] types;
 
     public enum DataProfileType {
         PROFILE_TYPE_APN(0),
@@ -125,7 +125,6 @@ public abstract class DataProfile {
         sb.append(", ").append(bearer);
         return sb.toString();
     }
-
 
     public void setProfileId(int profileId) {
         mProfileId = profileId;

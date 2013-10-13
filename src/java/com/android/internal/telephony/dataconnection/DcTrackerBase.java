@@ -253,14 +253,14 @@ public abstract class DcTrackerBase extends Handler {
     protected ConcurrentHashMap<String, ApnContext> mApnContexts =
                                     new ConcurrentHashMap<String, ApnContext>();
 
-    /** Currently active data profile */
-    protected DataProfile mActiveDp;
+    /* Currently active APN */
+    protected ApnSetting mActiveApn;
 
     /** Holds all data profiles */
     protected ArrayList<DataProfile> mAllDps = new ArrayList<DataProfile>();
 
-    /** preferred data profile */
-    protected DataProfile mPreferredDp = null;
+    /** preferred apn */
+    protected ApnSetting mPreferredApn = null;
 
     /** Is packet service restricted by network */
     protected boolean mIsPsRestricted = false;
@@ -562,15 +562,15 @@ public abstract class DcTrackerBase extends Handler {
     public boolean isApnTypeActive(String type) {
         // TODO: support simultaneous with List instead
         if (PhoneConstants.APN_TYPE_DUN.equals(type)) {
-            DataProfile dunApn = fetchDunApn();
+            ApnSetting dunApn = fetchDunApn();
             if (dunApn != null) {
-                return ((mActiveDp != null) && (dunApn.toHash().equals(mActiveDp.toHash())));
+                return ((mActiveApn != null) && (dunApn.toString().equals(mActiveApn.toString())));
             }
         }
-        return mActiveDp != null && mActiveDp.canHandleType(type);
+        return mActiveApn != null && mActiveApn.canHandleType(type);
     }
 
-    protected DataProfile fetchDunApn() {
+    protected ApnSetting fetchDunApn() {
         if (SystemProperties.getBoolean("net.tethering.noprovisioning", false)) {
             log("fetchDunApn: net.tethering.noprovisioning=true ret: null");
             return null;
@@ -592,8 +592,8 @@ public abstract class DcTrackerBase extends Handler {
 
     public String[] getActiveApnTypes() {
         String[] result;
-        if (mActiveDp != null) {
-            result = mActiveDp.types;
+        if (mActiveApn != null) {
+            result = mActiveApn.types;
         } else {
             result = new String[1];
             result[0] = PhoneConstants.APN_TYPE_DEFAULT;
@@ -604,8 +604,8 @@ public abstract class DcTrackerBase extends Handler {
     /** TODO: See if we can remove */
     public String getActiveApnString(String apnType) {
         String result = null;
-        if (mActiveDp != null) {
-            result = mActiveDp.apn;
+        if (mActiveApn != null) {
+            result = mActiveApn.apn;
         }
         return result;
     }
@@ -1684,8 +1684,8 @@ public abstract class DcTrackerBase extends Handler {
             pw.println(" mApnContexts=null");
         }
         pw.flush();
-        pw.println(" mActiveApn=" + mActiveDp);
-        ArrayList<DataProfile> apnSettings = mAllDps;
+        pw.println(" mActiveApn=" + mActiveApn);
+        ArrayList<ApnSetting> apnSettings = mAllApnSettings;
         if (apnSettings != null) {
             pw.println(" mAllApnSettings size=" + apnSettings.size());
             for (int i=0; i < apnSettings.size(); i++) {
@@ -1695,7 +1695,7 @@ public abstract class DcTrackerBase extends Handler {
         } else {
             pw.println(" mAllApnSettings=null");
         }
-        pw.println(" mPreferredApn=" + mPreferredDp);
+        pw.println(" mPreferredApn=" + mPreferredApn);
         pw.println(" mIsPsRestricted=" + mIsPsRestricted);
         pw.println(" mIsDisposed=" + mIsDisposed);
         pw.println(" mIntentReceiver=" + mIntentReceiver);
