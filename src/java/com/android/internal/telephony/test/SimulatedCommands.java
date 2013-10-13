@@ -1657,37 +1657,4 @@ public final class SimulatedCommands extends BaseCommands
     public void setCellInfoListRate(int rateInMillis, Message response) {
         unimplemented(response);
     }
-
-    @Override
-    public void getImsRegistrationState(Message response) {
-        unimplemented(response);
-    }
-
-    @Override
-    public void sendImsCdmaSms(byte[] pdu, int retry, int messageRef,
-            Message response){
-        unimplemented(response);
-    }
-
-    @Override
-    public void sendImsGsmSms(String smscPDU, String pdu,
-            int retry, int messageRef, Message response){
-        unimplemented(response);
-    }
-
-    @Override
-    public void setUiccSubscription(int slotId, int appIndex, int subId, int subStatus,
-            Message response) {
-        unimplemented(response);
-    }
-
-    @Override
-    public void setDataSubscription (Message response) {
-        unimplemented(response);
-    }
-
-    @Override
-    public void getDataCallProfile(int appType, Message response){
-        unimplemented(response);
-    }
 }
