@@ -57,7 +57,7 @@ import com.android.internal.telephony.uicc.IccCardStatus;
  * Handles most GSM and CDMA cases.
  * {@hide}
  */
-public class SamsungQualcommRIL extends RIL implements CommandsInterface {
+public class SamsungQualcommRIL extends QualcommMSIM42RIL implements CommandsInterface {
 
     private AudioManager mAudioManager;
 
@@ -71,6 +71,7 @@ public class SamsungQualcommRIL extends RIL implements CommandsInterface {
     private boolean oldRilState = needsOldRilFeature("exynos4RadioState");
     private boolean googleEditionSS = needsOldRilFeature("googleEditionSS");
     private boolean driverCall = needsOldRilFeature("newDriverCall");
+    private String[] lastKnownOfGood = {null, null, null};
     public SamsungQualcommRIL(Context context, int networkMode,
             int cdmaSubscription) {
         super(context, networkMode, cdmaSubscription);
@@ -185,7 +186,8 @@ public class SamsungQualcommRIL extends RIL implements CommandsInterface {
 
     @Override
     protected Object responseSignalStrength(Parcel p) {
-        int numInts = 12;
+        boolean isTdScdma = SystemProperties.get(TelephonyProperties.PROPERTY_DATA_NETWORK_TYPE).equals("TD-SCDMA");
+        int numInts = isTdScdma ? 13 : 12;
         int response[];
 
         // This is a mashup of algorithms used in
@@ -218,8 +220,8 @@ public class SamsungQualcommRIL extends RIL implements CommandsInterface {
         }else{ // lte is gsm on samsung/qualcomm cdma stack
             response[7] &= 0xff;
         }
-        return new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7], response[8], response[9], response[10], response[11], (p.readInt() != 0));
-
+        return isTdScdma ? new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7], response[8], response[9], response[10], response[11], response[12], (p.readInt() != 0)) :
+            new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7], response[8], response[9], response[10], response[11], (p.readInt() != 0));
     }
 
     @Override
@@ -364,7 +366,7 @@ public class SamsungQualcommRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_ENTER_SIM_PUK2: ret =  responseInts(p); break;
             case RIL_REQUEST_CHANGE_SIM_PIN: ret =  responseInts(p); break;
             case RIL_REQUEST_CHANGE_SIM_PIN2: ret =  responseInts(p); break;
-            case RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION: ret =  responseInts(p); break;
+            case RIL_REQUEST_ENTER_DEPERSONALIZATION_CODE: ret =  responseInts(p); break;
             case RIL_REQUEST_GET_CURRENT_CALLS: ret =  responseCallList(p); break;
             case RIL_REQUEST_DIAL: ret =  responseVoid(p); break;
             case RIL_REQUEST_GET_IMSI: ret =  responseString(p); break;
@@ -557,7 +559,7 @@ public class SamsungQualcommRIL extends RIL implements CommandsInterface {
     private Object
     operatorCheck(Parcel p) {
         String response[] = (String[])responseStrings(p);
-        for(int i=0; i<response.length; i++){
+        for(int i=0; i<3; i++){
             if (response[i]!= null){
                 if (i<2){
                     if (response[i].equals("       Empty") || (response[i].equals("") && !isGSM)) {
@@ -576,6 +578,10 @@ public class SamsungQualcommRIL extends RIL implements CommandsInterface {
                 } else if (response[i].equals("31000")|| response[i].equals("11111") || response[i].equals("123456") || response[i].equals("31099") || (response[i].equals("") && !isGSM)){
                         response[i]=homeOperator;
                 }
+                lastKnownOfGood[i]=response[i];
+            }else{
+                if(lastKnownOfGood[i]!=null)
+                    response[i]=lastKnownOfGood[i];
             }
         }
         return response;
